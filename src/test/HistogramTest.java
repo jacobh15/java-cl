@@ -29,7 +29,11 @@ import javacl.OpenCLTools;
 import javacl.Platform;
 import javacl.Program;
 import javacl.ProgramBuilder;
-
+/**
+ * The image histogram calculator use case from <i>The OpenCL Programming Guide</i>, in Java
+ * @author hauckjp
+ *
+ */
 public class HistogramTest {
 	
 	private static final int PLAT = 0, DEV = 0;			// indices of platform and device to use. cl.printInfo() to see platforms/devices
