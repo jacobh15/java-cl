@@ -11,9 +11,10 @@ import org.lwjgl.opencl.CL10;
 import org.lwjgl.opencl.CLProgramCallbackI;
 import org.lwjgl.system.MemoryStack;
 
+import util.StringScanner;
+import util.StringStuff;
+
 public class ProgramBuilder {
-	
-	private static final String KERNEL = "kernel", __KERNEL = "__kernel";
 	
 	private Context context;
 	private String source;
@@ -74,18 +75,7 @@ public class ProgramBuilder {
 			e.printStackTrace();
 		}
 		
-		int parity = 0;
-		for(int i = 0; i < source.length(); i++){
-			if(parity == 0 && (i == 0 || nonIdentifier(source.charAt(i - 1))) && saysKernel(i)){
-				i = createKernel(i, program);
-			}
-			if(source.charAt(i) == '{'){
-				parity--;
-			}else if(source.charAt(i) == '}'){
-				parity++;
-			}
-		}
-		clear();
+		createKernels(program);
 		context.programs.add(program);
 		return program;
 	}
@@ -97,54 +87,51 @@ public class ProgramBuilder {
 		source = "";
 	}
 	
-	private static boolean nonIdentifier(char c){
-		return c == ' ' || c == '\t' || c == '\n' || c == '}' || c == ';';
+	private void createKernels(Program p){
+		source = StringStuff.removeComments(source);
+		StringScanner scanner = new StringScanner(source);
+		while(scanner.hasNext()) {
+			String token = scanner.nextToken();
+			if(token.equals("kernel") || token.equals("__kernel")) {
+				scanner.nextToken();
+				token = scanner.nextToken();
+				if(token.equals("__attribute__")) {
+					scanner.advanceTill("(").advance(1).advanceTillClose("(", ")");
+					token = scanner.nextToken();
+				}
+				String name = token;
+				scanner.advanceTill("(").advance(1).mark();
+				scanner.advanceTillClose("(", ")").rewind(1);
+				StringScanner scanner2 = new StringScanner(scanner.markedString());
+				List<String> argumentNames = new ArrayList<>();
+				List<MemoryType> argumentTypes = new ArrayList<>();
+				while(scanner2.hasNext()) {
+					do {
+						token = scanner2.nextToken();
+					}while(isQualifier(token));
+					String argType = token;
+					int pos = scanner2.position();
+					scanner2.advanceTill(StringScanner.ALL_ALPHA, "_");
+					int end = scanner2.position();
+					scanner2.position(pos);
+					if(scanner2.contains(end - pos, '*')) {
+						argType += "*";
+					}
+					String argName = scanner2.nextToken();
+					argumentNames.add(argName);
+					argumentTypes.add(MemoryType.getType(argType));
+				}
+				scanner.advanceTill("{").advance(1).advanceTillClose("{", "}");
+				p.createKernel(name, argumentNames, argumentTypes);
+			}
+		}
 	}
 	
-	private boolean saysKernel(int i){
-		if(source.charAt(i) == 'k'){
-			return source.substring(i, i + KERNEL.length()).equals(KERNEL);
-		}else if(source.charAt(i) == '_'){
-			return source.substring(i, i + __KERNEL.length()).equals(__KERNEL);
-		}
-		return false;
-	}
-	
-	private int createKernel(int i, Program p){
-		int space = i + (source.charAt(i) == 'k' ? KERNEL.length() : __KERNEL.length());
-		while(nonIdentifier(source.charAt(space))){space++;}
-		space = firstWhiteSpace(source, space);
-		while(nonIdentifier(source.charAt(space))){space++;}
-		int parenOpen = source.indexOf('(', space);
-		String name = source.substring(space, parenOpen).trim();
-		int parenClose = source.indexOf(')', parenOpen);
-		String[] argumentsToParse = source.substring(parenOpen + 1, parenClose).split(",");
-		List<String> argNames = new ArrayList<>();
-		List<MemoryType> argTypes = new ArrayList<>();
-		for(int a = 0; a < argumentsToParse.length; a++){
-			String parse = argumentsToParse[a].trim();
-			int s = parse.length() - 1;
-			while(parse.charAt(s) != '*' && !nonIdentifier(parse.charAt(s))){s--;}
-			String argName = parse.substring(s + 1);
-			int endType = s;
-			while(parse.charAt(endType) == '*' || nonIdentifier(parse.charAt(endType))){endType--;}
-			int startType = endType;
-			while(startType > 0 && !nonIdentifier(parse.charAt(startType))){startType--;}
-			String argType = parse.substring(startType + 1, endType + 1) + 
-					(parse.substring(endType + 1, s + 1).contains("*") ? "*" : "");
-			argNames.add(argName);
-			argTypes.add(MemoryType.getType(argType));
-		}
-		p.createKernel(name, argNames, argTypes);
-		return parenClose;
-	}
-	
-	private static int firstWhiteSpace(String s, int from){
-		for(; from < s.length(); from++){
-			if(s.charAt(from) == ' ' || s.charAt(from) == '\t' || s.charAt(from) == '\n')
-				return from;
-		}
-		return -1;
+	private static boolean isQualifier(String s) {
+		return s.equals("local") || s.equals("__local") || s.equals("global") || s.equals("__global")
+				|| s.equals("private") || s.equals("__private") || s.equals("constant") || s.equals("__constant")
+				|| s.equals("const") || s.equals("restrict") || s.equals("volatile") || s.equals("read_only")
+				|| s.equals("__read_only") || s.equals("write_only") || s.equals("__write_only");
 	}
 	
 	public ProgramBuilder options(String opts){

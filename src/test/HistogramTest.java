@@ -2,17 +2,14 @@ package test;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.lwjgl.opencl.CL10;
 import org.lwjgl.stb.STBImage;
 
+import io.Input;
 import javacl.CLBuffer;
 import javacl.CLException;
 import javacl.CLImage;
@@ -62,7 +59,7 @@ public class HistogramTest {
 				.build();//note that host memory will be allocated to match the device memory allocations. This memory is to be
 							//used for reads, writes and maps when communicating with OpenCL device
 
-		ProgramBuilder progb = c.getProgramBuilder(fileToString("histogram.cl"));// build the OpenCL program
+		ProgramBuilder progb = c.getProgramBuilder(Input.fileToString("histogram.cl"));// build the OpenCL program
 		Program prog = null;
 		try{
 			prog = progb.build();
@@ -158,16 +155,5 @@ public class HistogramTest {
 		//free native resources (closeCL automatically frees all native memory associated with OpenCL contexts)
 		STBImage.stbi_image_free(data);
 		OpenCLTools.closeCL();
-	}
-	
-	public static String fileToString(String path){
-		byte[] encoded;
-		try {
-			encoded = Files.readAllBytes(Paths.get(path));
-			return new String(encoded, Charset.defaultCharset());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
 	}
 }
