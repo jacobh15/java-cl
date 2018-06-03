@@ -69,9 +69,8 @@ public class CLBuffer extends MemoryObject {
 		PointerBuffer waitList = cl.convertPointerBuffer(wait);
 		Event ev = null;
 		try(MemoryStack stack = MemoryStack.stackPush()){
-			int b = block ? CL10.CL_TRUE: CL10.CL_FALSE;
 			PointerBuffer event = stack.mallocPointer(1);
-			cl.errorCheck(CL10.clEnqueueReadBuffer(q.ptr, ptr, b, offset, dest, waitList, event));
+			cl.errorCheck(CL10.clEnqueueReadBuffer(q.ptr, ptr, block, offset, dest, waitList, event));
 			ev = new Event(event.get(0), q);
 		}catch(CLException e){
 			if(waitList != null)
@@ -92,12 +91,11 @@ public class CLBuffer extends MemoryObject {
 	}
 	
 	public Event enqueueWrite(CommandQueue q, boolean block, int offset, ByteBuffer src, Event...wait){
-		int b = block ? CL10.CL_TRUE: CL10.CL_FALSE;
 		PointerBuffer waitList = cl.convertPointerBuffer(wait);
 		Event ev = null;
 		try(MemoryStack stack = MemoryStack.stackPush()){
 			PointerBuffer event = stack.mallocPointer(1);
-			cl.errorCheck(CL10.clEnqueueWriteBuffer(q.ptr, ptr, b, offset, src, waitList, event));
+			cl.errorCheck(CL10.clEnqueueWriteBuffer(q.ptr, ptr, block, offset, src, waitList, event));
 			ev = new Event(event.get(0), q);
 		}catch(CLException e){
 			if(waitList != null)
@@ -153,13 +151,12 @@ public class CLBuffer extends MemoryObject {
 	}
 	
 	public Event enqueueMap(CommandQueue q, boolean block, MapType type, int offset, Event...wait){
-		int b = block ? CL10.CL_TRUE: CL10.CL_FALSE;
 		PointerBuffer waitList = cl.convertPointerBuffer(wait);
 		Event ev = null;
 		try(MemoryStack stack = MemoryStack.stackPush()){
 			PointerBuffer event = stack.mallocPointer(1);
 			IntBuffer error = stack.mallocInt(1);
-			CL10.clEnqueueMapBuffer(q.ptr, ptr, b, type.clMapType, offset, bytes - offset,
+			CL10.clEnqueueMapBuffer(q.ptr, ptr, block, type.clMapType, offset, bytes - offset,
 					waitList, event, error, hostMemory);
 			cl.errorCheck(error.get(0));
 		}catch(CLException e){

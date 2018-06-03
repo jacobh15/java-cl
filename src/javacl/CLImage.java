@@ -45,11 +45,10 @@ public class CLImage extends MemoryObject {
 	
 	public Event enqueueRead(CommandQueue q, boolean block, ImageRegion region, ByteBuffer dest, Event...wait){
 		PointerBuffer waitList = cl.convertPointerBuffer(wait);
-		int b = block ? 1: 0;
 		Event ev = null;
 		try(MemoryStack stack = MemoryStack.stackPush()){
 			PointerBuffer event = stack.mallocPointer(1);
-			cl.errorCheck(CL10.clEnqueueReadImage(q.ptr, ptr, b, region.origin, region.region,
+			cl.errorCheck(CL10.clEnqueueReadImage(q.ptr, ptr, block, region.origin, region.region,
 					imageData.rowPitch, imageData.slicePitch, dest, waitList, event));
 			ev = new Event(event.get(0), q);
 		}catch(CLException e){
@@ -79,11 +78,10 @@ public class CLImage extends MemoryObject {
 	
 	public Event enqueueWrite(CommandQueue q, boolean block, ImageRegion region, ByteBuffer src, Event...wait){
 		PointerBuffer waitList = cl.convertPointerBuffer(wait);
-		int b = block ? 1: 0;
 		Event ev = null;
 		try(MemoryStack stack = MemoryStack.stackPush()){
 			PointerBuffer event = stack.mallocPointer(1);
-			cl.errorCheck(CL10.clEnqueueWriteImage(q.ptr, ptr, b, region.origin, region.region,
+			cl.errorCheck(CL10.clEnqueueWriteImage(q.ptr, ptr, block, region.origin, region.region,
 					imageData.rowPitch, imageData.slicePitch, src, waitList, event));
 			ev = new Event(event.get(0), q);
 		}catch(CLException e){
@@ -163,12 +161,11 @@ public class CLImage extends MemoryObject {
 		PointerBuffer waitList = cl.convertPointerBuffer(wait);
 		PointerBuffer rowPitch = MemoryUtil.memAllocPointer(1).put(0, imageData.rowPitch);
 		PointerBuffer slicePitch = MemoryUtil.memAllocPointer(1).put(0, imageData.slicePitch);
-		int b = block ? 1: 0;
 		Event ev = null;
 		try(MemoryStack stack = MemoryStack.stackPush()){
 			IntBuffer error = stack.mallocInt(1);
 			PointerBuffer event = stack.mallocPointer(1);
-			CL10.clEnqueueMapImage(q.ptr, ptr, b, type.clMapType, region.origin, region.region,
+			CL10.clEnqueueMapImage(q.ptr, ptr, block, type.clMapType, region.origin, region.region,
 					rowPitch, slicePitch, waitList, event, error, hostMemory);
 			cl.errorCheck(error.get(0));
 			ev = new Event(event.get(0), q);
