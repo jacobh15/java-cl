@@ -1,5 +1,8 @@
 package javacl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opencl.CL10;
 import org.lwjgl.system.MemoryStack;
@@ -10,16 +13,22 @@ public class CommandQueue extends CLObject implements Releaseable {
 	private Context context;
 	private Device device;
 	private boolean profilingEnabled;
+	private List<PointerBuffer> eventLists;
 	
 	public CommandQueue(long p, Context c, Device d, boolean profiling){
 		super(p);
 		context = c;
 		device = d;
 		profilingEnabled = profiling;
+		eventLists = new ArrayList<>();
 	}
 	
 	public void waitForCompletion(){
 		CL10.clFinish(ptr);
+		for(int i = 0; i < eventLists.size(); i++) {
+			OpenCLTools.getOpenCLTools().releasePointerBuffer(eventLists.get(i));
+		}
+		eventLists.clear();
 	}
 	
 	public Context getContext(){
@@ -47,6 +56,7 @@ public class CommandQueue extends CLObject implements Releaseable {
 					workSpace.globalSizes, workSpace.localSizes, list, event));
 			
 			ev = new Event(event.get(0), this);
+			eventLists.add(list);
 		}catch(CLException e){
 			if(list != null)
 				MemoryUtil.memFree(list);

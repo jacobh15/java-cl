@@ -69,6 +69,7 @@ public class MemoryObjectBuilder {
 			
 			if(requestHostBuffer){
 				nativeBuffer = MemoryUtil.memAlloc(numBytes);
+				hostPtrNull = false;
 			}
 			
 			long p = 0;

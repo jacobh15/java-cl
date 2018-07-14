@@ -11,8 +11,20 @@ public class NDRange implements Releaseable {
 	public NDRange(int globalX, int globalY, int globalZ, int localX, int localY, int localZ, int dims){
 		dimensions = dims;
 		globalSizes = MemoryUtil.memAllocPointer(3).put(0, globalX).put(1, globalY).put(2, globalZ);
-		localSizes = MemoryUtil.memAllocPointer(3).put(0, localX).put(1, localY).put(2, localZ);
+		if(!useNullLocalSize(dims, localX, localY, localZ))
+			localSizes = MemoryUtil.memAllocPointer(3).put(0, localX).put(1, localY).put(2, localZ);
+		else
+			localSizes = null;
 		OpenCLTools.cl().addToReleaseQueue(this);
+	}
+	
+	private static boolean useNullLocalSize(int dims, int... locals) {
+		for(int i = 0; i < dims; i++) {
+			if(locals[i] == -1) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public void release(){

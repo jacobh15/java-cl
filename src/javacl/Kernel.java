@@ -143,6 +143,94 @@ public class Kernel extends CLObject implements Releaseable {
 		return this;
 	}
 	
+	public Kernel setArg(String name, Object o) {
+		MemoryType type = argumentTypes.get(name);
+		if(!(type.isPointer() || type.isImage())) {
+			if(type.isBool())
+				setArg(name, ((Boolean)o).booleanValue());
+			else if(type.isByte())
+				setArg(name, ((Byte)o).byteValue());
+			else if(type.isShort())
+				setArg(name, ((Short)o).shortValue());
+			else if(type.isInt())
+				setArg(name, ((Integer)o).intValue());
+			else if(type.isLong())
+				setArg(name, ((Long)o).longValue());
+			else if(type.isFloat())
+				setArg(name, ((Float)o).floatValue());
+			else if(type.isDouble())
+				setArg(name, ((Double)o).doubleValue());
+		}else if(type.isPointer()) {
+			setArg(name, (CLBuffer)o);
+		}else if(type.isImage()) {
+			setArg(name, (CLImage)o);
+		}
+		return this;
+	}
+	
+	public Kernel setArg(String name, Object o1, Object o2) {
+		MemoryType type = argumentTypes.get(name);
+		if(type.isVector()) {
+			if(type.isBool())
+				setArg(name, ((Boolean)o1).booleanValue(), ((Boolean)o2).booleanValue());
+			else if(type.isByte())
+				setArg(name, ((Byte)o1).byteValue(), ((Byte)o2).byteValue());
+			else if(type.isShort())
+				setArg(name, ((Short)o1).shortValue(), ((Short)o2).shortValue());
+			else if(type.isInt())
+				setArg(name, ((Integer)o1).intValue(), ((Integer)o2).intValue());
+			else if(type.isLong())
+				setArg(name, ((Long)o1).longValue(), ((Long)o2).longValue());
+			else if(type.isFloat())
+				setArg(name, ((Float)o1).floatValue(), ((Float)o2).floatValue());
+			else if(type.isDouble())
+				setArg(name, ((Double)o1).doubleValue(), ((Double)o2).doubleValue());
+		}
+		return this;
+	}
+	
+	public Kernel setArg(String name, Object o1, Object o2, Object o3) {
+		MemoryType type = argumentTypes.get(name);
+		if(type.isVector()) {
+			if(type.isBool())
+				setArg(name, ((Boolean)o1).booleanValue(), ((Boolean)o2).booleanValue(), ((Boolean)o3).booleanValue());
+			else if(type.isByte())
+				setArg(name, ((Byte)o1).byteValue(), ((Byte)o2).byteValue(), ((Byte)o3).byteValue());
+			else if(type.isShort())
+				setArg(name, ((Short)o1).shortValue(), ((Short)o2).shortValue(), ((Short)o3).shortValue());
+			else if(type.isInt())
+				setArg(name, ((Integer)o1).intValue(), ((Integer)o2).intValue(), ((Integer)o3).intValue());
+			else if(type.isLong())
+				setArg(name, ((Long)o1).longValue(), ((Long)o2).longValue(), ((Long)o3).longValue());
+			else if(type.isFloat())
+				setArg(name, ((Float)o1).floatValue(), ((Float)o2).floatValue(), ((Float)o3).floatValue());
+			else if(type.isDouble())
+				setArg(name, ((Double)o1).doubleValue(), ((Double)o2).doubleValue(), ((Double)o3).doubleValue());
+		}
+		return this;
+	}
+	
+	public Kernel setArg(String name, Object o1, Object o2, Object o3, Object o4) {
+		MemoryType type = argumentTypes.get(name);
+		if(type.isVector()) {
+			if(type.isBool())
+				setArg(name, ((Boolean)o1).booleanValue(), ((Boolean)o2).booleanValue(), ((Boolean)o3).booleanValue(), ((Boolean)o4).booleanValue());
+			else if(type.isByte())
+				setArg(name, ((Byte)o1).byteValue(), ((Byte)o2).byteValue(), ((Byte)o3).byteValue(), ((Byte)o4).byteValue());
+			else if(type.isShort())
+				setArg(name, ((Short)o1).shortValue(), ((Short)o2).shortValue(), ((Short)o3).shortValue(), ((Short)o4).shortValue());
+			else if(type.isInt())
+				setArg(name, ((Integer)o1).intValue(), ((Integer)o2).intValue(), ((Integer)o3).intValue(), ((Integer)o4).intValue());
+			else if(type.isLong())
+				setArg(name, ((Long)o1).longValue(), ((Long)o2).longValue(), ((Long)o3).longValue(), ((Long)o4).longValue());
+			else if(type.isFloat())
+				setArg(name, ((Float)o1).floatValue(), ((Float)o2).floatValue(), ((Float)o3).floatValue(), ((Float)o4).floatValue());
+			else if(type.isDouble())
+				setArg(name, ((Double)o1).doubleValue(), ((Double)o2).doubleValue(), ((Double)o3).doubleValue(), ((Double)o4).doubleValue());
+		}
+		return this;
+	}
+	
 	public Kernel setArg(String name, KernelArgumentSetter setter){
 		setter.setArg(ptr, argumentPositions.get(name));
 		return this;

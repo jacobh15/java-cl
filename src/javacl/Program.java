@@ -28,7 +28,7 @@ public class Program extends CLObject implements Releaseable {
 	
 	public void release(){
 		for(int i = 0; i < kernels.size(); i++){
-			kernels.get(i).release();
+			cl.releaseItem(kernels.get(i));
 		}
 		cl.errorCheck(CL10.clReleaseProgram(ptr));
 	}

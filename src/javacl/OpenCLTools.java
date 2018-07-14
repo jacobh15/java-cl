@@ -4,7 +4,9 @@ import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opencl.CL;
@@ -17,6 +19,7 @@ public class OpenCLTools {
 	
 	private OpenCLTools(){
 		releaseQueue = new ArrayList<>();
+		pbholders = new HashMap<>();
 	}
 	
 	public static OpenCLTools getOpenCLTools(){
@@ -31,6 +34,7 @@ public class OpenCLTools {
 	
 	private List<Platform> platforms;
 	private List<Releaseable> releaseQueue;
+	private Map<PointerBuffer, PBHolder> pbholders;
 	
 	public List<Platform> getPlatforms(){
 		if(platforms == null){
@@ -128,15 +132,33 @@ public class OpenCLTools {
 		releaseQueue.clear();
 	}
 	
+	public void releaseItem(Releaseable rel) {
+		rel.release();
+		removeFromReleaseQueue(rel);
+	}
+	
 	PointerBuffer convertPointerBuffer(Event[] events){
 		PointerBuffer list = null;
 		if(events != null && events.length > 0){
-			list = MemoryUtil.memAllocPointer(events.length);
-			for(int i = 0; i < events.length; i++)
-				list.put(i, events[i].ptr);
-			addToReleaseQueue(new PBHolder(list));
+			int validEvents = 0;
+			for(int i = 0; i < events.length; i++) {
+				if(events[i] != null && events[i].ptr != 0)
+					validEvents++;
+			}
+			list = MemoryUtil.memAllocPointer(validEvents);
+			for(int i = 0; i < events.length; i++) {
+				if(events[i] != null && events[i].ptr != 0)
+					list.put(i, events[i].ptr);
+			}
+			pbholders.put(list, new PBHolder(list));
 		}
 		return list;
+	}
+	
+	void releasePointerBuffer(PointerBuffer pb) {
+		if(pbholders.containsKey(pb)) {
+			releaseItem(pbholders.get(pb));
+		}
 	}
 	
 	private static class PBHolder implements Releaseable {

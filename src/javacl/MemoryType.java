@@ -92,6 +92,7 @@ public enum MemoryType {
 	private int numComponents;
 	private int bytesPerComponent;
 	private int byteSize;
+	private Class<?> javaComponentType;
 	
 	private MemoryType(int compSize, String...tokens){
 		this.tokens = tokens;
@@ -103,9 +104,9 @@ public enum MemoryType {
 		}
 		numComponents = 1;
 		try{
-			numComponents = Integer.parseInt(tokens[0].substring(tokens[0].length() - 1));
+			numComponents = Integer.parseInt(testString.substring(testString.length() - 1));
 			try{
-				numComponents = Integer.parseInt(tokens[0].substring(tokens[0].length() - 2));
+				numComponents = Integer.parseInt(testString.substring(testString.length() - 2));
 			}catch(NumberFormatException e){}
 			if(type == null)
 				type = Type.VECTOR;
@@ -120,19 +121,35 @@ public enum MemoryType {
 		byteSize = numComponents * bytesPerComponent;
 		if(testString.contains("bool")){
 			type2 = Type2.BOOLEAN;
+			setJavaType(Boolean.class);
 		}else if(testString.contains("byte")){
 			type2 = Type2.BYTE;
+			setJavaType(Byte.class);
 		}else if(testString.contains("short") || testString.contains("half")){
 			type2 = Type2.SHORT;
+			setJavaType(Short.class);
 		}else if(testString.contains("int")){
 			type2 = Type2.INT;
+			setJavaType(Integer.class);
 		}else if(testString.contains("long")){
 			type2 = Type2.LONG;
+			setJavaType(Long.class);
 		}else if(testString.contains("float")){
 			type2 = Type2.FLOAT;
+			setJavaType(Float.class);
 		}else if(testString.contains("double")){
 			type2 = Type2.DOUBLE;
+			setJavaType(Double.class);
 		}
+	}
+	
+	private void setJavaType(Class<?> c) {
+		if(isScalar() || isVector())
+			javaComponentType = c;
+		else if(isPointer())
+			javaComponentType = CLBuffer.class;
+		else if(isImage())
+			javaComponentType = CLImage.class;
 	}
 	
 	static MemoryType getType(String str){
@@ -214,5 +231,9 @@ public enum MemoryType {
 	
 	public int sizeInBytes(){
 		return byteSize;
+	}
+	
+	public Class<?> getJavaType(){
+		return javaComponentType;
 	}
 }

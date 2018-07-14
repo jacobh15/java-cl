@@ -26,7 +26,6 @@ public class CLBuffer extends MemoryObject {
 	}
 	
 	public void release(){
-		CL10.clReleaseMemObject(ptr);
 		MemoryUtil.memFree(memPointer);
 		super.release();
 	}
